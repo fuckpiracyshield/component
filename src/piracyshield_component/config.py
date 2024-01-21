@@ -38,7 +38,7 @@ class Config:
             return toml.load(file_path)
 
         except FileNotFoundError:
-            raise ConfigNotFound(f'Impossibile trovare file {file_path}')
+            raise ConfigNotFound(f'Could not find path `{file_path}`')
 
     def get(self, key: str) -> str | Exception:
         """
@@ -52,7 +52,7 @@ class Config:
             return self.config_content[key]
 
         except KeyError:
-            raise ConfigKeyNotFound(f'Impossibile trovare chiave {key}')
+            raise ConfigKeyNotFound(f'Could not find key `{key}`')
 
     def get_all(self, key: str = None) -> any:
         """
