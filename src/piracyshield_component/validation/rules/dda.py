@@ -10,7 +10,7 @@ class DDA(Rule):
 
     message = 'DDA identifier not valid'
 
-    expression = r'^[0-9]{3}\/[0-9]{2}\/DDA$'
+    expression = r'^[0-9]{1,4}\/[0-9]{2}\/DDA$'
 
     def __init__(self):
         """

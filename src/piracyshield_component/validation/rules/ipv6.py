@@ -6,9 +6,13 @@ class IPv6(Rule):
     Rule that checks for a valid IPv6.
     """
 
+    hextets_syntax_message = 'IPv6 not valid, more than one `::` found'
+
     hextets_message = 'IPv6 not valid, expecting eight hextets, got {}'
 
     hextets_digits_message = 'IPv6 not valid, expecting eight hextets of hexadecimal digits'
+
+    hextets_maximum_length = 'IPv6 not valid, too many hextets'
 
     hextets_length_message = 'IPv6 not valid, one or more hextet(s) too long'
 
@@ -29,32 +33,56 @@ class IPv6(Rule):
         :param value: a valid string.
         """
 
-        hextets = value.split(':')
+        # short syntax
+        if '::' in value:
+            parts = value.split('::')
 
-        hextets_size = len(hextets)
+            if len(parts) > 2:
+                self.register_error(self.hextets_syntax_message)
 
-        # we're expecting 8 hextets
-        if hextets_size != 8:
-            self.register_error(self.hextets_message.format(hextets_size))
+                return False
+
+            left_side = parts[0].split(':') if parts[0] else []
+            right_side = parts[1].split(':') if parts[1] else []
+
+            zeros_needed = 8 - len(left_side) - len(right_side)
+
+            if zeros_needed < 0:
+                self.register_error(self.hextets_maximum_length)
+
+                return False
+
+            hextets = left_side + ['0'] * zeros_needed + right_side
+
+        # common syntax
+        else:
+            hextets = value.split(':')
+
+            if len(hextets) != 8:
+                self.register_error(self.hextets_message.format(self.hextets_digits_message))
+
+                return False
 
         for hextet in hextets:
-            single_hextet_size = len(hextet)
-
-            # each hextet must be composed of hexadecimal digits
             if not all(c in '0123456789ABCDEFabcdef' for c in hextet):
                 self.register_error(self.hextets_digits_message)
 
-            # with a maximum length of 4
-            if single_hextet_size > 4:
+                return False
+
+            if len(hextet) > 4:
                 self.register_error(self.hextets_length_message)
 
+                return False
+
             try:
-                # convert the hextet to an integer in base 16
                 int_value = int(hextet, 16)
 
-                # check if the integer value is within the valid range (0~0xFFFF)
                 if not (0 <= int_value <= 0xFFFF):
                     self.register_error(self.hextets_digits_size_message)
 
+                    return False
+
             except ValueError:
                 self.register_error(self.hextets_digits_size_message)
+
+                return False

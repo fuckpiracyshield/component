@@ -38,6 +38,8 @@ class IPv4(Rule):
         if octets_size != 4:
             self.register_error(self.octets_message.format(octets_size))
 
+            return False
+
         for octet in octets:
             single_octet_size = len(octet)
 
@@ -45,10 +47,18 @@ class IPv4(Rule):
             if not octet.isdigit():
                 self.register_error(self.octets_digits_message)
 
+                return False
+
             # with a maximum length of 3
             if single_octet_size > 3:
                 self.register_error(self.octets_length_message)
 
+                return False
+
+            int_octet = int(octet)
+
             # between 0 and 255
-            if single_octet_size < 0 or single_octet_size > 255:
+            if int_octet < 0 or int_octet > 255:
                 self.register_error(self.octets_digits_size_message)
+
+                return False

@@ -1,6 +1,6 @@
 from piracyshield_component.validation.rule import Rule
 
-import ipaddress
+from ipaddress import ip_network, AddressValueError, NetmaskValueError
 
 class CIDRSyntaxIPv6(Rule):
 
@@ -14,33 +14,33 @@ class CIDRSyntaxIPv6(Rule):
         """
         Initialize parent __init__.
         """
-
         super().__init__()
 
-    def __call__(self, value: str) -> None:
+    def __call__(self, value: str) -> bool:
         """
         Checks the validity of the passed string.
 
         :param value: a valid CIDR syntax string.
         """
-
         try:
-            # doesn't seem solid enough, but we're not too paranoid
             if '/' not in value:
                 self.register_error(self.message)
 
                 return False
 
-            network = ipaddress.ip_network(value, strict = True)
+            network = ip_network(value, strict=False)
 
-            # check for a single IPv6 address
-            if network.prefixlen > 128:
+            # Check for valid prefix length
+            if not (1 <= network.prefixlen <= 128):
                 self.register_error(self.message)
 
                 return False
 
-        # non valid at all
-        except ValueError:
+            # If all checks pass
+            return True
+
+        except (ValueError, AddressValueError, NetmaskValueError):
             self.register_error(self.message)
 
             return False
+
